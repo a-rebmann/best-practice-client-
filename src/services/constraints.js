@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:8000/api/constraints'
+const baseUrl = import.meta.env.VITE_APP_BACKEND_API_URL + "/constraints" || 'http://localhost:8000/api/constraints'
 
 const getAll = () => {
   return axios.get(baseUrl)

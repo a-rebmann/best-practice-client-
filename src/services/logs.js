@@ -1,5 +1,6 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:8000/api/logs'
+const baseUrl = import.meta.env.VITE_APP_BACKEND_API_URL + "/logs" || 'http://localhost:8000/api/logs'
+
 
 const getAll = () => {
   return axios.get(baseUrl)

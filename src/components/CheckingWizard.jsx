@@ -32,7 +32,7 @@ import "@ui5/webcomponents-icons/dist/lead.js"
 import { set, without } from 'lodash';
 import violationService from '../services/violations';
 
-const CheckingWizard = ({navigate}) => {
+const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen}) => {
   const [selectedWizard, setSelectedWizard] = useState({
     1: { selected: true, disabled: false },
     2: { selected: false, disabled: false }, // change to disabled: true
@@ -89,6 +89,13 @@ const CheckingWizard = ({navigate}) => {
             let fetched_data = JSON.parse(response.data)
             console.log(fetched_data)
             setVariantData(fetched_data.violated_variants)
+            setSelectedWizard({
+              ...objectMap(selectedWizard, (x) => ({
+              selected: false,
+              disabled: x.disabled,
+              })),
+              4: { selected: true, disabled: false },
+          })
         }).catch((error) => {
             console.log(error)
         })
@@ -336,9 +343,13 @@ const CheckingWizard = ({navigate}) => {
       selected={selectedWizard['4'].selected}
       data-step={'4'}>
         <VariantsDisplay
+        constraintViolations={constraintViolations}
         variantData={variantData}
         setVariantData={setVariantData}
         originalVariantData={variantData}
+        setSelectedActivity={setSelectedActivity}
+        setDialogIsOpen={setDialogIsOpen}
+        setAffectedViolations={setAffectedViolations}
         />
       </WizardStep>
     </Wizard>

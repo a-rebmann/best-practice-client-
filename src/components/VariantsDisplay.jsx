@@ -1,11 +1,12 @@
 import {
+    AnalyticalTable,
     Timeline,
     TimelineItem,
-    FlexBox,
     Card,
-    ToolbarSelect,
-    ToolbarSelectOption,
+    Dialog,
+    FlexBox,
     CardHeader,
+    Button,
     ToolbarV2,
   } from '@ui5/webcomponents-react';
 
@@ -26,13 +27,14 @@ import { useState } from 'react';
   };
   
   const VariantsDisplay = ({
-    setVariantData,
+    constraintViolations,
     variantData,
+    setVariantData,
     originalVariantData,
+    setSelectedActivity,
+    setDialogIsOpen,
+    setAffectedViolations
   }) => {
-    const [dialogIsOpen, setDialogIsOpen] = useState(false);
-    const [showOnlyNonConformant, setShowOnlyNonConformant] = useState(false);
-
 
     return !isNil(variantData) ?(
       <>
@@ -53,14 +55,14 @@ import { useState } from 'react';
             padding: '10px',
           }}
         >
-          {variantData.map((variant, index) => (
+          {variantData.sort((a, b) => b.variant.frequency - a.variant.frequency).map((variant, index) => (
             <div key={index}>
               <Card
                 header={
                   <FlexBox justifyContent="SpaceBetween">
                     <CardHeader
                       style={{ color: 'black' }}
-                      titleText={`Occurrence: ${variant.frequency}, # of activities: ${variant.activities.length}`}
+                      titleText={`Occurrence: ${variant.variant.frequency}, # of activities: ${variant.variant.activities.length}`}
                     />
                   </FlexBox>
                 }
@@ -79,10 +81,16 @@ import { useState } from 'react';
                   }}
                 >
                   <Timeline layout="Horizontal">
-                    {variant.variants.activities.map((activity, aIndex) => (
+                    {variant.variant.activities.map((activity, aIndex) => (
                       <TimelineItem
                         nameClickable
                         onNameClick={() => {
+                          setSelectedActivity(activity);
+                          setAffectedViolations(
+                            constraintViolations.filter(
+                              (v) => variant.activities[activity].includes(v.constraint.id)
+                            )
+                          );
                           setDialogIsOpen(true);
                         }}
                         label={activity}
@@ -93,7 +101,7 @@ import { useState } from 'react';
                         style={{
                           width: 200,
                           height: 60,
-                          background: findColor(false),
+                          background: findColor(variant.activities[activity].length!==0),
                         }}
                       />
                     ))}
