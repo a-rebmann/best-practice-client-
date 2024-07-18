@@ -114,9 +114,9 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
             return {
                 ...violation,
                 nat_lang_template: nat_lang_templates[violation.constraint.constraint.constraint_type]
-                .replace("{1}", "''" + violation.constraint.left_operand + "''")
-                .replace("{2}", "''" + violation.constraint.right_operand + "''")
-                .replace('{n}', violation.constraint.constraint_str?.split('[')[0]?.slice(-1)),
+                .replaceAll("{1}", "''" + violation.constraint.left_operand + "''")
+                .replaceAll("{2}", "''" + violation.constraint.right_operand + "''")
+                .replaceAll('{n}', violation.constraint.constraint_str?.split('[')[0]?.slice(-1)),
             }
         }))
         let ids = fetched_data.violations.map((violation) => {
@@ -169,9 +169,9 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
         return {
           ...constraint,
           nat_lang_template: nat_lang_templates[constraint.constraint.constraint_type]
-          .replace("{1}", "''" + constraint.left_operand + "''")
-          .replace("{2}", "''" + constraint.right_operand + "''")
-          .replace('{n}', constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
+          .replaceAll("{1}", "''" + constraint.left_operand + "''")
+          .replaceAll("{2}", "''" + constraint.right_operand + "''")
+          .replaceAll('{n}', constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
         }
       })
       console.log(fetched_constraints)
