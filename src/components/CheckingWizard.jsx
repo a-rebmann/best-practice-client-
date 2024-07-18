@@ -83,6 +83,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
     }
 
     const handleGetVariants = () => {
+        console.log("selectedRows", selectedOutputRows)
         violationService.getVariantsForSelection(selectedOutputRows.map((row) => {
             return row.id
         })).then((response) => {
@@ -109,7 +110,6 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
         }
       )).then((response) => {
         let fetched_data = JSON.parse(response.data)
-        console.log(fetched_data)
         setConstraintViolations(fetched_data.violations.map((violation) => {
             return {
                 ...violation,
@@ -118,6 +118,13 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                 .replace("{2}", "''" + violation.constraint.right_operand + "''")
                 .replace('{n}', violation.constraint.constraint_str?.split('[')[0]?.slice(-1)),
             }
+        }))
+        let ids = fetched_data.violations.map((violation) => {
+          return violation.id
+        })
+        console.log(ids)
+        setSelectedOutputRows(selectedInputRows.filter((row) => {
+          ids.includes(row.id)
         }))
         setCheckingForViolations(false)
         setSelectedWizard({
