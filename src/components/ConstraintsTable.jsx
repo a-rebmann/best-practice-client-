@@ -3,8 +3,13 @@ import {
   MultiComboBox,
   MultiComboBoxItem,
   Button,
+  Title,
+  FlexBox,
+  ButtonDesign
 } from '@ui5/webcomponents-react';
 import "@ui5/webcomponents-icons/dist/delete.js"
+import "@ui5/webcomponents-icons/dist/add.js"
+import "@ui5/webcomponents-icons/dist/tree.js"
 import { CONSTRAINT_LEVELS, filterFn } from '../util';
 import { without } from 'lodash';
 
@@ -16,9 +21,12 @@ const ConstraintsTable = ({
   selectedInputRows,
   onRowSelect,
   deleteSelected,
+  setConstrainCreateDialogIsOpen,
+  handleSelect
 }) => {
   return (
     <>
+    <Title>All Mined Constraints</Title>
       <AnalyticalTable
         minRows={9}
         visibleRows={10}
@@ -93,10 +101,33 @@ const ConstraintsTable = ({
             headerTooltip: 'Second operand of the constraint',
           },
           {
+            Header: 'Occurs in # models',
+            accessor: 'support',
+            headerTooltip: 'Occurs in # models',
+          },
+          {
             Header: 'Explanation',
             accessor: 'nat_lang_template',
             headerTooltip: 'nat_lang_template',
             width: 500,
+          },
+          {
+            Cell: (instance) => {
+              const { row, webComponentsReactProperties } = instance;
+              // disable buttons if overlay is active to prevent focus
+              const isOverlay = webComponentsReactProperties.showOverlay;
+              return (
+                <Button icon="tree" disabled={isOverlay} onClick={()=>handleSelect(row.original)} />
+              );
+            },
+            width: 50,
+            Header: '',
+            accessor: '.',
+            disableFilters: true,
+            disableGroupBy: true,
+            disableResizing: true,
+            disableSortBy: true,
+            id: 'getimages',
           },
           {
             Cell: (instance) => {
@@ -108,7 +139,7 @@ const ConstraintsTable = ({
                   ? [row.original]
                   : row.leafRows.map((x) => x.original);
 
-                setConstraintData(without(constraintData, ...rows));
+                setConstraints(without(constraints, ...rows));
               };
               return (
                 <Button icon="delete" disabled={isOverlay} onClick={onDelete} />
@@ -130,11 +161,18 @@ const ConstraintsTable = ({
       <Button
         icon="delete"
         onClick={() =>
-          deleteSelected(constraintData, selectedInputRows, setConstraintData)
+          deleteSelected(constraints, selectedInputRows, setConstraints)
         }
       >
         Delete Selected
       </Button>
+      <FlexBox justifyContent="End">
+        <Button 
+        design={ButtonDesign.Emphasized}
+        onClick={setConstrainCreateDialogIsOpen}
+        icon='add'
+        >Create</Button>
+      </FlexBox>
     </>
   );
 };

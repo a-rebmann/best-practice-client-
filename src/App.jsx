@@ -1,6 +1,7 @@
 import CheckingWizard from './components/CheckingWizard';
+import Configuration from './components/Configuration';
 import { Route, Routes, useNavigate } from 'react-router-dom'; 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   Dialog, 
@@ -11,22 +12,141 @@ import {
   DynamicPageTitle,
   Title,
   Label,
-  Badge,
-  WrappingType,
+  ButtonDesign,
+  Select,
+  Option,
+  Form,
+  FormGroup,
+  FormItem,
+  Input,
+  MessageView,
+  MessageItem
 } from '@ui5/webcomponents-react';
+import "@ui5/webcomponents-icons/dist/action-settings.js"
+import constraintService from './services/constraints';
+import configService from './services/configuration'; 
 
 import './App.css'
+import { set } from 'lodash';
 
 const App = () => {
   const navigate = useNavigate();
 
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const [newConstraint, setNewConstraint] = useState({
+    id: '',
+    arity: '',
+    level: '',
+    constraint_str: '',
+    constraint_type: '',
+    object_type: '',
+    left_operand: '',
+    processmodel_id: '',
+    right_operand: '',
+    support: 1,
+  });
+  const [constrainCreateDialogIsOpen, setConstrainCreateDialogIsOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [affectedViolations, setAffectedViolations] = useState([]);
+  const [configActive, setConfigActive] = useState(false);
+  const [config, setConfig] = useState(undefined);
+  const [objectDisabled, setObjectDisabled] = useState(true);
+  const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
+  const [modelIDs, setModelIDs] = useState([]);
+
+  const [messages, setMessages] = useState([]);
+
+
+  const addMessage = (message) => {
+    console.log(message);
+    setMessages([...messages, message]);
+  }
+
+  const removeMessage = (message) => {
+    setMessages(messages.filter((msg) => msg !== message));
+  }
+
+
+
+    useEffect(() => {
+      setMediaDialogOpen(false);
+      // fetch config
+      configService.getConfig().then((response) => {
+          console.log(response.data);
+          setConfig(response.data);
+      }).catch((error) => {
+          console.log(error);
+      })
+  }, [])
+
+  useEffect(() => {
+    if (modelIDs.length>0) setMediaDialogOpen(true);
+  }, [modelIDs])
+
+
+
+ const  handleSelect = (constraint) => {
+    // fetch constraints  
+    constraintService.getModelIDsForConstraint(constraint).then((response) => {
+      let fetchedModelIDs = JSON.parse(response.data);
+      setModelIDs(fetchedModelIDs.models);
+      console.log(fetchedModelIDs.models);
+      
+      })
+    .catch((error) => {
+      console.log(error);
+    })
+  }
+
+
+  const handleCreateConstraint = () => {
+    // check if relevant fields are filled
+    console.log(JSON.stringify(newConstraint));
+    constraintService.createConstraint(newConstraint).then((response) => {
+      console.log(response.data);
+      setNewConstraint({
+        id: '',
+        arity: '',
+        level: '',
+        constraint_str: '',
+        constraint_type: '',
+        object_type: '',
+        left_operand: '',
+        processmodel_id: '',
+        right_operand: '',
+        support: 1,
+      });
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+
+  
+
 
   return (
     <>
-     <Dialog
+    <Dialog open={mediaDialogOpen}
+      onAfterClose={() => setMediaDialogOpen(false)}
+    ><div>
+      {modelIDs.map((model, index) => 
+       <>
+          <a key={model} target="_blank" href={constraintService.baseUrl + "/" + model}><Button>Model {index +1}</Button></a>
+        </>
+      )
+      }
+      </div>
+      <FlexBox justifyContent="End">
+        <Button
+          onClick={() => {
+            setMediaDialogOpen(false);
+          }}
+        >
+          Close
+        </Button>
+      </FlexBox>
+    </Dialog>
+    <Dialog
       open={dialogIsOpen}
       onAfterClose={() => setDialogIsOpen(false)}
     >
@@ -60,7 +180,7 @@ const App = () => {
             Header: 'Explanation',
             accessor: 'nat_lang_template',
             headerTooltip: 'nat_lang_template',
-            width: 500,
+            width: 850,
             },
             {
               Header: '# cases',
@@ -70,8 +190,11 @@ const App = () => {
             },
         ]}
       />
+      
+
       <div style={{ margin: 10 }} />
-      <FlexBox justifyContent="SpaceBetween">
+
+      <FlexBox justifyContent="End">
         <Button
           onClick={() => {
             setDialogIsOpen(false);
@@ -81,6 +204,120 @@ const App = () => {
         </Button>
       </FlexBox>
     </Dialog>
+    {config &&
+     <Dialog
+      open={constrainCreateDialogIsOpen}
+      onAfterClose={() => setConstrainCreateDialogIsOpen(false)}
+    >
+      <div>Create a New Constraint</div>
+
+      <Form
+            backgroundDesign="Transparent"
+            columnsL={1}
+            columnsM={1}
+            columnsS={1}
+            columnsXL={1}
+            labelSpanL={4}
+            labelSpanM={2}
+            labelSpanS={12}
+            labelSpanXL={4}
+            style={{
+                alignItems: 'center'
+            }}
+            >
+                
+            <FormGroup titleText="Constraint Details">
+                <FormItem label="Support">
+                    <Input 
+                    onChange={(event) => {
+                      console.log(event);
+                      setNewConstraint({...newConstraint, support: event.target.typedInValue})}
+                    }
+                    type="Number" value={newConstraint.support}/>
+                </FormItem>
+                <FormItem label="Level">
+                <Select
+                  value={newConstraint.level}
+                  onChange={(event) => {
+                    setNewConstraint({...newConstraint, 
+                      level: event.detail.selectedOption.innerText})
+                      console.log(newConstraint.constraint_type, newConstraint.left_operand, newConstraint.right_operand, newConstraint.object_type, newConstraint.level);
+                      if(event.detail.selectedOption.innerText === "Object"){
+                        setObjectDisabled(false);
+                        }
+                      else{
+                        setNewConstraint({...newConstraint, 
+                          object_type: ''})
+                        setObjectDisabled(true);
+                      }  
+                }}
+                  onClose={function _a(){}}
+                  onLiveChange={function _a(){}}
+                  onOpen={function _a(){}}
+                  valueState="None"
+                  >
+                 {
+                    config.constraint_levels.map((level) =>
+                    <Option key={level} selected={newConstraint.level === level}>{level}</Option>)
+                 }
+                 
+                  </Select>
+                </FormItem>
+                <FormItem label="Type">
+                <Select
+                  onChange={(event) => {
+                    setNewConstraint({...newConstraint, 
+                      constraint_type: event.detail.selectedOption.innerText})
+                }}
+                  onClose={function _a(){}}
+                  onLiveChange={function _a(){}}
+                  onOpen={function _a(){}}
+                  valueState="None"
+                  >
+                 {
+                    config.constraint_types.map((const_type) =>
+                    <Option key={const_type} selected={newConstraint.constraint_type === const_type}>{const_type}</Option>)
+                 }
+                 
+                  </Select>
+                </FormItem>
+                <FormItem label="Left Operand">
+                    <Input 
+                    onChange={(event) => { 
+                      console.log(event);
+                      setNewConstraint({...newConstraint, left_operand: event.target.typedInValue})}} 
+                    value={newConstraint.left_operand}/>
+                </FormItem>
+                <FormItem label="Right Operand">
+                    <Input  
+                    onChange={(event) => { 
+                      console.log(event);
+                      setNewConstraint({...newConstraint, right_operand: event.target.typedInValue})}} 
+                    value={newConstraint.right_operand}/>
+                </FormItem>
+                <FormItem label="Object Type">
+                    <Input 
+                    onChange={(event) => { 
+                      console.log(event);
+                      setNewConstraint({...newConstraint, object_type: event.target.typedInValue})}} 
+                    disabled={objectDisabled} 
+                    value={newConstraint.object_type}/>
+                </FormItem>
+            </FormGroup>
+            </Form>
+
+      <FlexBox justifyContent="End">
+        <Button
+          onClick={() => {
+            handleCreateConstraint();
+            setConstrainCreateDialogIsOpen(false);
+          }}
+        >
+          Create Constraint
+        </Button>
+      </FlexBox>
+    </Dialog>
+}
       <DynamicPage
         alwaysShowContentHeader
         style={{
@@ -92,8 +329,20 @@ const App = () => {
         }}
         showHideHeaderButton={false}
         headerContentPinnable={false}
+        
         headerTitle={
           <DynamicPageTitle
+
+            actions={<>
+            <Button 
+            design={configActive?ButtonDesign.Emphasized:ButtonDesign.Default}
+            icon="action-settings" onClick={() => {
+              setConfigActive(!configActive);
+              if (configActive) navigate('/');
+              else navigate('/configuration');
+              }}>
+              Configuration
+            </Button></>} 
             header={<Title>Best-Practice Checker</Title>}
             subHeader={
               <>
@@ -102,9 +351,11 @@ const App = () => {
                 </Label>
               </>
             }
-          ></DynamicPageTitle>
+          >
+           
+          </DynamicPageTitle>
         }
-      >
+      > 
         <Routes>
           <Route
             path="/"
@@ -114,10 +365,37 @@ const App = () => {
               setSelectedActivity={setSelectedActivity}
               setDialogIsOpen={setDialogIsOpen}
               setAffectedViolations={setAffectedViolations}
+              addMessage={addMessage}
               />
             }
           />
+          <Route
+            path="/configuration"
+            element={
+              <Configuration 
+              handleSelect={handleSelect}
+              setConstrainCreateDialogIsOpen={() => setConstrainCreateDialogIsOpen(true)}/>
+            }
+          />
         </Routes>
+        {messages.length>0?
+        <>
+        <h4 style={{color:'black'}}>Messages (click to remove)</h4>
+        <MessageView
+          onItemSelect={function _a(){}}
+          showDetailsPageHeader={false}
+        >
+          {messages.map((message, index) => {
+            return <MessageItem
+            key={index}
+            subtitleText={message.subtitle}
+            titleText={message.title}
+            type={message.type}
+            onClick={() => removeMessage(message)}
+            >
+              
+          </MessageItem>})}
+        </MessageView></>:null}
         </DynamicPage>
     </>
   )

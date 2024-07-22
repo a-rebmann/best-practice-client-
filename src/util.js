@@ -37,12 +37,6 @@ export const colors = [
   { color: 'red', text: 'event is non-conformant' },
 ];
 
-export const sankeyColors = [
-  { color: 'green', text: 'event is conformant' },
-  { color: 'orange', text: 'event is likely non-conformant' },
-  { color: 'red', text: 'event is non-conformant' },
-];
-
 export const findLabel = (row, leftOrRight) =>
   !isNil(row) &&
   !isNil(row[`log_label_${leftOrRight}`]) &&
@@ -82,3 +76,36 @@ export const filterFn = (rows, accessor, filterValue) => {
 
 export const objectMap = (obj, fn) =>
   Object.fromEntries(Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)]));
+
+
+export const addNatLangTemplateViolation = (violation) => {
+  return {
+    ...violation,
+    nat_lang_template: nat_lang_templates[violation.constraint.constraint.constraint_type]
+    .replaceAll("{1}", "''" + violation.constraint.constraint.left_operand + "''")
+    .replaceAll("{2}", "''" + violation.constraint.constraint.right_operand + "''")
+    .replaceAll('{n}', violation.constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
+  }
+}
+
+
+export const addNatLangTemplateFittedConstraint = (constraint) => {
+  return {
+    ...constraint,
+    nat_lang_template: nat_lang_templates[constraint.constraint.constraint_type]
+    .replaceAll("{1}", "''" + constraint.constraint.left_operand + "''")
+    .replaceAll("{2}", "''" + constraint.constraint.right_operand + "''")
+    .replaceAll('{n}', constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
+  }
+}
+
+
+export const addNatLangTemplateConstraint = (constraint) => {
+  return {
+    ...constraint,
+    nat_lang_template: nat_lang_templates[constraint.constraint_type]
+    .replaceAll("{1}", "''" + constraint.left_operand + "''")
+    .replaceAll("{2}", "''" + constraint.right_operand + "''")
+    .replaceAll('{n}', constraint.constraint_str?.split('[')[0]?.slice(-1)),
+  }
+}

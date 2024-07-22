@@ -5,23 +5,31 @@ const getAll = () => {
   return axios.get(baseUrl)
 }
 
-const getForProcess = (log) => {
+const getForProcess = (log, relevance) => {
   console.log("Log", log)
-  const config = { headers: {'Content-Type': "text/plain"} };
-  return axios.post(`${baseUrl}/log/`, log, config)
+  //const config = { headers: {'Content-Type': "application/json"} };
+  const data = {log: log, relevance: relevance}
+  console.log(data)
+  return axios.put(`${baseUrl}/log`, data)
 }
 
-const create = newObject => {
-  return axios.post(baseUrl, newObject)
+const createConstraint = newConstraint => {
+  return axios.post(`${baseUrl}/new`, newConstraint)
 }
 
 const update = (id, newObject) => {
   return axios.put(`${baseUrl}/${id}`, newObject)
 }
 
+const getModelIDsForConstraint = (constraint) => {
+  return axios.get(`${baseUrl}/${constraint.id}/models`)
+}
+
 export default { 
   getAll: getAll, 
-  create: create, 
+  createConstraint: createConstraint, 
   update: update, 
-  getForProcess: getForProcess
+  getForProcess: getForProcess,
+  getModelIDsForConstraint: getModelIDsForConstraint,
+  baseUrl: baseUrl
 }

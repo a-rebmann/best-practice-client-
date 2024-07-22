@@ -5,7 +5,7 @@ import {
     Button,
   } from '@ui5/webcomponents-react';
   import { CONSTRAINT_LEVELS, filterFn } from '../util';
-  import { set, without } from 'lodash';
+  import { without } from 'lodash';
   
   const SuggestedConstraintsTable = ({
     markNavigatedInputRow,
@@ -131,6 +131,7 @@ import {
               id: 'actions',
             },
           ]}
+          
           data={suggestedConstraints}
         />
   

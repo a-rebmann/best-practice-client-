@@ -14,8 +14,12 @@ import {
   Select,
   Option,
   BusyIndicator,
+  Input,
+  Form,
+  FormGroup,
+  FormItem
 } from '@ui5/webcomponents-react';
-import {nat_lang_templates, objectMap } from '../util';
+import {objectMap, addNatLangTemplateFittedConstraint, addNatLangTemplateViolation } from '../util';
 import ButtonMenu from './ButtonMenu';
 import constraintService from '../services/constraints'
 import logService from '../services/logs'
@@ -29,10 +33,10 @@ import "@ui5/webcomponents-icons/dist/opportunity.js"
 import "@ui5/webcomponents-icons/dist/upload.js"
 import "@ui5/webcomponents-icons/dist/product.js"
 import "@ui5/webcomponents-icons/dist/lead.js"
-import { set, without } from 'lodash';
+import { add, set, without } from 'lodash';
 import violationService from '../services/violations';
 
-const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen}) => {
+const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen, addMessage}) => {
   const [selectedWizard, setSelectedWizard] = useState({
     1: { selected: true, disabled: false },
     2: { selected: false, disabled: false }, // change to disabled: true
@@ -51,6 +55,11 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
   const [deletedViolations, setDeletedViolations] = useState([]);
   const [selectedOutputRows, setSelectedOutputRows] = useState([]);
   const [variantData, setVariantData] = useState([])
+  const [min_support, setMinSupport] = useState(0.9)
+  const [uploading, setUploading] = useState(false)
+
+
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
 
 
   const onRowSelect = (e, setSelectedRows) => {
@@ -106,19 +115,11 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
         setCheckingForViolations(true)
         violationService.getViolations(selectedInputRows.map((constraint) => {
             console.log(constraint)
-            return constraint.id
+            return constraint?.id
         }
       )).then((response) => {
         let fetched_data = JSON.parse(response.data)
-        setConstraintViolations(fetched_data.violations.map((violation) => {
-            return {
-                ...violation,
-                nat_lang_template: nat_lang_templates[violation.constraint.constraint.constraint_type]
-                .replaceAll("{1}", "''" + violation.constraint.left_operand + "''")
-                .replaceAll("{2}", "''" + violation.constraint.right_operand + "''")
-                .replaceAll('{n}', violation.constraint.constraint_str?.split('[')[0]?.slice(-1)),
-            }
-        }))
+        setConstraintViolations(fetched_data.violations.map(addNatLangTemplateViolation))
         let ids = fetched_data.violations.map((violation) => {
           return violation.id
         })
@@ -160,36 +161,60 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
     })
     }, [])
 
-
-  useEffect(() => {
+  const handleMatching = () => {
     setLoading(true)
-    constraintService.getForProcess(selectedFile).then((response) => {
+    constraintService.getForProcess(selectedFile, min_support).then((response) => {
       let fetched_data = JSON.parse(response.data)
-      let fetched_constraints = fetched_data.constraints.map((constraint) => {
-        return {
-          ...constraint,
-          nat_lang_template: nat_lang_templates[constraint.constraint.constraint_type]
-          .replaceAll("{1}", "''" + constraint.left_operand + "''")
-          .replaceAll("{2}", "''" + constraint.right_operand + "''")
-          .replaceAll('{n}', constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
-        }
-      })
+      let fetched_constraints = fetched_data.constraints.map(addNatLangTemplateFittedConstraint)
       console.log(fetched_constraints)
       setSuggestedConstraints(fetched_constraints)
-    //   logService.getVariants(selectedFile).then((response) => {
-    //     let fetched_data = JSON.parse(response.data)
-    //     console.log(fetched_data)
-    //     setVariantData(fetched_data.variants)
-    //     setLoading(false)
-    //   }).catch((error) => {
-    //     console.log(error)
-    //     setLoading(false)
-    //   })
     setLoading(false)
     }).catch((error) => {
         console.log(error)
         setLoading(false)
     })
+  }
+
+
+  const handleSubmit = (log) => {
+   setUploading(true)
+    console.log(log)
+    if (log.size > MAX_FILE_SIZE) {
+      console.log('File too large')
+      addMessage(
+        {
+          title:'File too large',
+          subtitle: 'File size exceeds ' + MAX_FILE_SIZE/(1024*1024) + ' MB',
+          type: 'Error'});
+      setUploading(false)
+      return
+    } 
+    logService.uploadLog(log).then((response) => {
+      console.log(response.data)
+      let fetched_logs = JSON.parse(response.data)
+      let log_options = fetched_logs.logs.map((log) => {
+          return {
+              text: log,
+              value: log
+          }
+      })
+      console.log(log_options)
+      setAvailableLogs([{
+          text: 'Select here',
+          value: 'none',
+        }].concat(log_options)) 
+        setUploading(false)
+    }
+    ).catch((error) => {
+      console.log(error)
+      setUploading(false)
+    })
+  };
+
+  useEffect(() => {
+    setSuggestedConstraints([])
+    setVariantData([])
+    setConstraintViolations([])
   }, [selectedFile])
 
   const handleStepChange = (e) => {
@@ -238,12 +263,18 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
             Select or upload an event log to check. 
           </Label>
           <br />
-          <FileUploader hideInput style={{ margin: 20 }} disabled>
+          <FileUploader 
+          onChange={(e) => {
+            handleSubmit(e.detail.files[0])
+          }
+          }
+          hideInput multiple={false} accept='.xes' style={{ margin: 20 }}>
             <Avatar icon="upload" disabled />
           </FileUploader>
           <FileUploader hideInput disabled>
-            <Badge disabled>{'Upload file'}</Badge>
+            <Badge disabled>{'Uploading files is currently disabled'}</Badge>
           </FileUploader>
+          <>{uploading && <><BusyIndicator active={uploading}></BusyIndicator></> }</>
           <Title>Available event logs</Title>
           <Select
             onChange={(event) =>
@@ -259,26 +290,59 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
               );
             })}
           </Select>
-          <br />
-          <>{loading && <><BusyIndicator active={loading}></BusyIndicator><p>Loading log</p></> }</>
-          <div style={{ margin: 200 }} />
-          <FlexBox justifyContent="SpaceBetween">
-            <Button
-             disabled={suggestedConstraints.length === 0}
-              design={ButtonDesign.Emphasized}
-              onClick={() =>
-                setSelectedWizard({
-                  ...objectMap(selectedWizard, (x) => ({
-                    selected: false,
-                    disabled: x.disabled,
-                  })),
-                  2: { selected: true, disabled: false },
-                })
+          <div style={{ margin: 20 }} />
+          <Form 
+          columnsL={1}
+          columnsM={1}
+          columnsS={1}
+          columnsXL={2}
+          labelSpanL={4}
+          labelSpanM={2}
+          labelSpanS={12}
+          labelSpanXL={4}
+          style={{
+            alignItems: 'left'
+          }}
+          titleText="Configuration">
+          <FormGroup>
+          <FormItem label="Minimum Relevance Score">
+
+            <Input 
+            type="Number"
+            text={min_support} 
+            value={min_support}
+            onChange={(event) => {
+                if (event.target.typedInValue < 0 || event.target.typedInValue > 1) setMinSupport(0.9)
+                else setMinSupport(event.target.typedInValue)
               }
+            }
+            />
+          </FormItem>
+          </FormGroup>
+          </Form>
+          <br />
+          <div style={{ margin: 20 }} />
+          <>{loading && <><BusyIndicator active={loading}></BusyIndicator></> }</>
+            <Button
+             disabled={selectedFile === "none" || loading}
+              design={ButtonDesign.Emphasized}
+              onClick={() =>{
+                if (suggestedConstraints.length > 0) {
+                  setSelectedWizard({
+                    ...objectMap(selectedWizard, (x) => ({
+                      selected: false,
+                      disabled: x.disabled,
+                    })),
+                    2: { selected: true, disabled: false },
+                  })
+                } else {
+                  handleMatching()
+                }
+              }
+            }
             >
-              Configure Suggested Constraints
+              {loading? "Suggesting Constraints...": suggestedConstraints.length>0? "Go to Suggested Constraints": "Suggest Constraints"}
             </Button>
-          </FlexBox>
         </>
       </WizardStep>
       <WizardStep
