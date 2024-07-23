@@ -171,6 +171,12 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
     setLoading(false)
     }).catch((error) => {
         console.log(error)
+        addMessage(
+          {
+            title:(error).response?.data.detail || error.message,
+            subtitle: 'Please make sure the event log is in XES format and contains proper activity labels',
+            type: 'Error'}
+          )
         setLoading(false)
     })
   }
@@ -269,10 +275,10 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
           }
           }
           hideInput multiple={false} accept='.xes' style={{ margin: 20 }}>
-            <Avatar icon="upload" disabled />
+            <Avatar icon="upload" />
           </FileUploader>
           <FileUploader hideInput disabled>
-            <Badge disabled>{'Uploading files is currently disabled'}</Badge>
+            <Badge disabled>{'Uploads are currently limited to 100MB'}</Badge>
           </FileUploader>
           <>{uploading && <><BusyIndicator active={uploading}></BusyIndicator></> }</>
           <Title>Available event logs</Title>

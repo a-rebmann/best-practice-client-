@@ -1,26 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ConstraintsTable from './ConstraintsTable';
+import Statistics from './Statistics';
 
 
 import constraintService from '../services/constraints';
 import { addNatLangTemplateConstraint } from '../util';
 
 import {
-    Form,
-    FormGroup,
-    FormItem,
-    Input,
-    Panel,
-    Token,
-    CheckBox,
-    Button,
-    FlexBox,
     BusyIndicator
   } from '@ui5/webcomponents-react';
-import { set } from 'lodash';
 
 
-const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect}) => {
+const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect, config}) => {
 
     const [constraints, setConstraints] = useState([]);
     const [selectedInputRows, setSelectedInputRows] = useState([]);
@@ -145,6 +136,7 @@ const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect}) => {
             setConstrainCreateDialogIsOpen={setConstrainCreateDialogIsOpen}
             handleSelect={handleSelect}
             />
+            <Statistics config={config} constraints={constraints} />
         </>
     :<>{loading && <><BusyIndicator active={loading}></BusyIndicator></> }</>)
 }

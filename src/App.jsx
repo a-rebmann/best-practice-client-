@@ -373,6 +373,7 @@ const App = () => {
             path="/configuration"
             element={
               <Configuration 
+              config={config}
               handleSelect={handleSelect}
               setConstrainCreateDialogIsOpen={() => setConstrainCreateDialogIsOpen(true)}/>
             }
