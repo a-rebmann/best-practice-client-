@@ -28,7 +28,7 @@ const Statistics = ({ config, constraints }) => {
         uniqueModelIDs.add(id);
       });
     });
-    setModelStatistics({ total: uniqueModelIDs.size });
+    setModelStatistics({ total: uniqueModelIDs.size, constraints_total: constraints.length });
 
     let artityStats = constraints.reduce((acc, constraint) => {
       if (acc[constraint.arity]) {
@@ -92,6 +92,18 @@ const Statistics = ({ config, constraints }) => {
           <Card
             header={
               <AnalyticalCardHeader
+                description="Number of Best Practices in Collection"
+                state="Default"
+                subtitleText="Count"
+                titleText="Mined Best Practices in Collection"
+                value={modelStatistics.constraints_total}
+              ></AnalyticalCardHeader>
+            }
+          />
+          <div style={{ height: "20px" }}></div>
+          <Card
+            header={
+              <AnalyticalCardHeader
                 description="Number of Process Models"
                 state="Default"
                 subtitleText="Count"
@@ -103,7 +115,7 @@ const Statistics = ({ config, constraints }) => {
         </div>
         <div>
           <Card
-            header={<CardHeader titleText="Arity of Constraints" />}
+            header={<CardHeader titleText="Arity of Best-Practice Constraints" />}
             style={{
               width: "300px",
             }}
@@ -125,7 +137,7 @@ const Statistics = ({ config, constraints }) => {
         </div>
         <div>
           <Card
-            header={<CardHeader titleText="Constraint Types" />}
+            header={<CardHeader titleText="Types of Best-Practice Constraints" />}
             style={{
               width: "300px",
             }}
@@ -147,7 +159,7 @@ const Statistics = ({ config, constraints }) => {
         </div>
         <div>
           <Card
-            header={<CardHeader titleText="Constraint Levels" />}
+            header={<CardHeader titleText="Levels of Best-Practice Constraints" />}
             style={{
               width: "300px",
             }}

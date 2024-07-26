@@ -26,7 +26,7 @@ const ConstraintsTable = ({
 }) => {
   return (
     <>
-    <Title>All Mined Constraints</Title>
+    <Title>All Best Practices</Title>
       <AnalyticalTable
         minRows={9}
         visibleRows={10}
@@ -171,7 +171,7 @@ const ConstraintsTable = ({
         design={ButtonDesign.Emphasized}
         onClick={setConstrainCreateDialogIsOpen}
         icon='add'
-        >Create</Button>
+        >Create New Best Practice</Button>
       </FlexBox>
     </>
   );

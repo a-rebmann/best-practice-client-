@@ -17,7 +17,8 @@ import {
   Input,
   Form,
   FormGroup,
-  FormItem
+  FormItem,
+  CheckBox,
 } from '@ui5/webcomponents-react';
 import {objectMap, addNatLangTemplateFittedConstraint, addNatLangTemplateViolation } from '../util';
 import ButtonMenu from './ButtonMenu';
@@ -32,11 +33,11 @@ import "@ui5/webcomponents-icons/dist/reset.js"
 import "@ui5/webcomponents-icons/dist/opportunity.js"
 import "@ui5/webcomponents-icons/dist/upload.js"
 import "@ui5/webcomponents-icons/dist/product.js"
-import "@ui5/webcomponents-icons/dist/lead.js"
+import "@ui5/webcomponents-icons/dist/inspect-down.js"
 import { add, set, without } from 'lodash';
 import violationService from '../services/violations';
 
-const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen, addMessage}) => {
+const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen, addMessage, config}) => {
   const [selectedWizard, setSelectedWizard] = useState({
     1: { selected: true, disabled: false },
     2: { selected: false, disabled: false }, // change to disabled: true
@@ -55,7 +56,11 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
   const [deletedViolations, setDeletedViolations] = useState([]);
   const [selectedOutputRows, setSelectedOutputRows] = useState([]);
   const [variantData, setVariantData] = useState([])
-  const [min_support, setMinSupport] = useState(0.9)
+  const [min_relevance, setMinRelevance] = useState(0.9)
+  const [min_support, setMinSupport] = useState(2)
+  const [binary, setBinary] = useState(false)
+  const [unary, setUnary] = useState(false)
+  const [constraint_levels, setConstraintLevels] = useState([])
   const [uploading, setUploading] = useState(false)
 
 
@@ -163,7 +168,8 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
 
   const handleMatching = () => {
     setLoading(true)
-    constraintService.getForProcess(selectedFile, min_support).then((response) => {
+    const data = {log: selectedFile, min_support: min_support, min_relevance: min_relevance, unary: unary, binary: binary, constraint_levels: constraint_levels}
+    constraintService.getForProcess(data).then((response) => {
       let fetched_data = JSON.parse(response.data)
       let fetched_constraints = fetched_data.constraints.map(addNatLangTemplateFittedConstraint)
       console.log(fetched_constraints)
@@ -297,10 +303,11 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
             })}
           </Select>
           <div style={{ margin: 20 }} />
+          {config?
           <Form 
-          columnsL={1}
-          columnsM={1}
-          columnsS={1}
+          columnsL={2}
+          columnsM={2}
+          columnsS={2}
           columnsXL={2}
           labelSpanL={4}
           labelSpanM={2}
@@ -310,27 +317,73 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
             alignItems: 'left'
           }}
           titleText="Configuration">
-          <FormGroup>
-          <FormItem label="Minimum Relevance Score">
+          <FormGroup titleText="Best-Practice Constraint Parameters">
+              <FormItem label="Minimum Relevance Score">
 
-            <Input 
-            type="Number"
-            text={min_support} 
-            value={min_support}
-            onChange={(event) => {
-                if (event.target.typedInValue < 0 || event.target.typedInValue > 1) setMinSupport(0.9)
-                else setMinSupport(event.target.typedInValue)
+                <Input 
+                type="Number"
+                text={min_relevance} 
+                value={min_relevance}
+                onChange={(event) => {
+                    if (event.target.typedInValue < 0 || event.target.typedInValue > 1) setMinRelevance(0.9)
+                    else setMinRelevance(event.target.typedInValue)
+                  }
+                }
+                />
+              </FormItem>
+              <FormItem label="Minimum Support">
+                  <Input type="Number" 
+                  text={min_support} 
+                  value={min_support}
+                    onChange={(event) => {
+                      if (event.target.typedInValue < 0) setMinSupport(2)
+                      else setMinSupport(event.target.typedInValue)
+                    }
+                  }
+                  />
+              </FormItem>
+              <FormItem label="Unary">
+              <CheckBox checked={unary} 
+              onChange={
+                (event) => {
+                    console.log(event.target.checked)
+                    setUnary(event.target.checked)
+                }   
+              }/>
+              </FormItem>
+              <FormItem label="Binary">
+              <CheckBox checked={binary} 
+              onChange={
+                (event) => {
+                    setBinary(event.target.checked)
+                }   
               }
-            }
-            />
-          </FormItem>
+              />
+              </FormItem>
           </FormGroup>
+            <FormGroup titleText="Best-Practice Constraint Levels">
+                {config.constraint_levels.map((level) => 
+                    <FormItem key={level} label={level}>
+                    <CheckBox checked={constraint_levels.includes(level)} 
+                    onChange={
+                        (event) => {
+                            if (event.target.checked) {
+                                setConstraintLevels([...constraint_levels, level])
+                            } else {
+                                setConstraintLevels(without(constraint_levels, level))
+                            }
+                        }
+                    }/>
+                    </FormItem>)
+                }
+            </FormGroup>
           </Form>
+        :null}    
           <br />
           <div style={{ margin: 20 }} />
           <>{loading && <><BusyIndicator active={loading}></BusyIndicator></> }</>
             <Button
-             disabled={selectedFile === "none" || loading}
+             disabled={selectedFile === "none" || loading || constraint_levels.length === 0 || (binary === false && unary === false)}
               design={ButtonDesign.Emphasized}
               onClick={() =>{
                 if (suggestedConstraints.length > 0) {
@@ -347,20 +400,20 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
               }
             }
             >
-              {loading? "Suggesting Constraints...": suggestedConstraints.length>0? "Go to Suggested Constraints": "Suggest Constraints"}
+              {loading? "Suggesting Best Practices...": suggestedConstraints.length>0? "Go to Suggested Best Practices": "Suggest Best Practices"}
             </Button>
         </>
       </WizardStep>
       <WizardStep
         icon="hint"
-        titleText="Configure Constraints"
+        titleText="Select Best-Practice Constraints"
         disabled={selectedWizard['2'].disabled}
         selected={selectedWizard['2'].selected}
         data-step={'2'}
       >
-        <Title>2. Configure Constraints</Title>
+        <Title>2. Select Best-Practice Constraints</Title>
         <Label wrappingType={WrappingType.Normal}>
-          Select constraints that are interesting for your analysis.
+          Select best-practice constraints that are interesting for your analysis.
         </Label>
             <SuggestedConstraintsTable
             markNavigatedInputRow={markNavigatedInputRow}
@@ -378,21 +431,21 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
             design={ButtonDesign.Emphasized}
             onClick={() => handleConformanceCheck()}
           >
-            {checkingForViolations? "Checking...": "Check for Violated Constraints"}
+            {checkingForViolations? "Checking...": "Check for Best-Practice Violations"}
           </Button>
           <>{checkingForViolations && <BusyIndicator active={checkingForViolations}/>}</>
         </FlexBox>
       </WizardStep>
       <WizardStep
-        icon="lead"
-        titleText="Violated Constraints"
+        icon="inspect-down"
+        titleText="Violated Best-Practice Constraints"
         disabled={selectedWizard['3'].disabled}
         selected={selectedWizard['3'].selected}
         data-step={'3'}
       >
-        <Title>3. Violated Constraints</Title>
+        <Title>3. Violated Best-Practice Constraints</Title>
         <Label wrappingType={WrappingType.Normal}>
-          Below you find the constraints that are violated by the event log.
+          Below you find the best-practice constraints that are violated in the event log.
         </Label>
         {/* <ButtonMenu actions={menuActions} items={menuItems} /> */}
         <ViolatedConstraintsTable

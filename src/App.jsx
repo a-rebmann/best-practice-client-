@@ -27,7 +27,6 @@ import constraintService from './services/constraints';
 import configService from './services/configuration'; 
 
 import './App.css'
-import { set } from 'lodash';
 
 const App = () => {
   const navigate = useNavigate();
@@ -341,7 +340,7 @@ const App = () => {
               if (configActive) navigate('/');
               else navigate('/configuration');
               }}>
-              Configuration
+              Best-Practice Administration
             </Button></>} 
             header={<Title>Best-Practice Checker</Title>}
             subHeader={
@@ -366,6 +365,7 @@ const App = () => {
               setDialogIsOpen={setDialogIsOpen}
               setAffectedViolations={setAffectedViolations}
               addMessage={addMessage}
+              config={config}
               />
             }
           />

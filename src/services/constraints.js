@@ -5,10 +5,7 @@ const getAll = () => {
   return axios.get(baseUrl)
 }
 
-const getForProcess = (log, relevance) => {
-  console.log("Log", log)
-  //const config = { headers: {'Content-Type': "application/json"} };
-  const data = {log: log, relevance: relevance}
+const getForProcess = (data) => {
   console.log(data)
   return axios.put(`${baseUrl}/log`, data)
 }
