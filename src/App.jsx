@@ -25,6 +25,7 @@ import {
 import "@ui5/webcomponents-icons/dist/action-settings.js"
 import constraintService from './services/constraints';
 import configService from './services/configuration'; 
+import { addNatLangTemplateConstraint } from './util';
 
 import './App.css'
 
@@ -43,8 +44,10 @@ const App = () => {
     processmodel_id: '',
     right_operand: '',
     support: 1,
+    provider: '',
+    provision_type: '',
   });
-  const [constrainCreateDialogIsOpen, setConstrainCreateDialogIsOpen] = useState(false);
+  const [constraintCreateDialogIsOpen, setConstraintCreateDialogIsOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [affectedViolations, setAffectedViolations] = useState([]);
   const [configActive, setConfigActive] = useState(false);
@@ -54,6 +57,9 @@ const App = () => {
   const [modelIDs, setModelIDs] = useState([]);
 
   const [messages, setMessages] = useState([]);
+
+  const [newlyCreatedConstraints, setNewlyCreatedConstraints] = useState([]);
+
 
 
   const addMessage = (message) => {
@@ -73,6 +79,8 @@ const App = () => {
       configService.getConfig().then((response) => {
           console.log(response.data);
           setConfig(response.data);
+          newConstraint.level = response.data.constraint_levels[0];
+          newConstraint.constraint_type = response.data.constraint_types[0];
       }).catch((error) => {
           console.log(error);
       })
@@ -103,12 +111,15 @@ const App = () => {
     console.log(JSON.stringify(newConstraint));
     constraintService.createConstraint(newConstraint).then((response) => {
       console.log(response.data);
+      let createdConstraint = JSON.parse(response.data);
+      createdConstraint = addNatLangTemplateConstraint(createdConstraint);
+      setNewlyCreatedConstraints([createdConstraint]);
       setNewConstraint({
         id: '',
         arity: '',
-        level: '',
+        level: config.constraint_levels[0],
         constraint_str: '',
-        constraint_type: '',
+        constraint_type: config.constraint_types[0],
         object_type: '',
         left_operand: '',
         processmodel_id: '',
@@ -205,10 +216,10 @@ const App = () => {
     </Dialog>
     {config &&
      <Dialog
-      open={constrainCreateDialogIsOpen}
-      onAfterClose={() => setConstrainCreateDialogIsOpen(false)}
+      open={constraintCreateDialogIsOpen}
+      onAfterClose={() => setConstraintCreateDialogIsOpen(false)}
     >
-      <div>Create a New Constraint</div>
+      <div>Create a New Best Practice</div>
 
       <Form
             backgroundDesign="Transparent"
@@ -225,7 +236,7 @@ const App = () => {
             }}
             >
                 
-            <FormGroup titleText="Constraint Details">
+            <FormGroup titleText="Details">
                 <FormItem label="Support">
                     <Input 
                     onChange={(event) => {
@@ -307,9 +318,10 @@ const App = () => {
 
       <FlexBox justifyContent="End">
         <Button
+          disabled={newConstraint.level === '' || newConstraint.constraint_type === '' || newConstraint.left_operand === ''}
           onClick={() => {
             handleCreateConstraint();
-            setConstrainCreateDialogIsOpen(false);
+            setConstraintCreateDialogIsOpen(false);
           }}
         >
           Create Constraint
@@ -375,7 +387,8 @@ const App = () => {
               <Configuration 
               config={config}
               handleSelect={handleSelect}
-              setConstrainCreateDialogIsOpen={() => setConstrainCreateDialogIsOpen(true)}/>
+              newlyCreatedConstraints={newlyCreatedConstraints}
+              setConstraintCreateDialogIsOpen={() => setConstraintCreateDialogIsOpen(true)}/>
             }
           />
         </Routes>

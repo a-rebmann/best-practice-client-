@@ -92,10 +92,10 @@ const Statistics = ({ config, constraints }) => {
           <Card
             header={
               <AnalyticalCardHeader
-                description="Number of Best Practices in Collection"
+                description="Number of Available Best Practices"
                 state="Default"
                 subtitleText="Count"
-                titleText="Mined Best Practices in Collection"
+                titleText="Best Practices"
                 value={modelStatistics.constraints_total}
               ></AnalyticalCardHeader>
             }
@@ -104,7 +104,7 @@ const Statistics = ({ config, constraints }) => {
           <Card
             header={
               <AnalyticalCardHeader
-                description="Number of Process Models"
+                description="Number of Process Models used for Best-Practice Mining"
                 state="Default"
                 subtitleText="Count"
                 titleText="Models in Collection"

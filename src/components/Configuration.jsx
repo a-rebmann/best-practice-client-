@@ -11,7 +11,7 @@ import {
   } from '@ui5/webcomponents-react';
 
 
-const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect, config}) => {
+const Configuration = ({setConstraintCreateDialogIsOpen, handleSelect, config, newlyCreatedConstraints}) => {
 
     const [constraints, setConstraints] = useState([]);
     const [selectedInputRows, setSelectedInputRows] = useState([]);
@@ -62,6 +62,13 @@ const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect, config}) =
         })
     }
     , [])
+
+
+    useEffect(() => {
+        if (newlyCreatedConstraints.length>0){
+            setConstraints([...newlyCreatedConstraints, ...constraints]);
+        }
+    }, [newlyCreatedConstraints])
 
 
     return (constraints.length>0?
@@ -133,7 +140,7 @@ const Configuration = ({setConstrainCreateDialogIsOpen, handleSelect, config}) =
             markNavigatedInputRow={markNavigatedInputRow}
             deleteSelected={deleteSelected}
             onRowSelect={onRowSelect}
-            setConstrainCreateDialogIsOpen={setConstrainCreateDialogIsOpen}
+            setConstraintCreateDialogIsOpen={setConstraintCreateDialogIsOpen}
             handleSelect={handleSelect}
             />
             <Statistics config={config} constraints={constraints} />

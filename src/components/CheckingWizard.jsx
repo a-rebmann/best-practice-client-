@@ -438,7 +438,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
       </WizardStep>
       <WizardStep
         icon="inspect-down"
-        titleText="Violated Best-Practice Constraints"
+        titleText="Violated Best Practices"
         disabled={selectedWizard['3'].disabled}
         selected={selectedWizard['3'].selected}
         data-step={'3'}

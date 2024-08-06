@@ -21,7 +21,7 @@ const ConstraintsTable = ({
   selectedInputRows,
   onRowSelect,
   deleteSelected,
-  setConstrainCreateDialogIsOpen,
+  setConstraintCreateDialogIsOpen,
   handleSelect
 }) => {
   return (
@@ -116,12 +116,13 @@ const ConstraintsTable = ({
               const { row, webComponentsReactProperties } = instance;
               // disable buttons if overlay is active to prevent focus
               const isOverlay = webComponentsReactProperties.showOverlay;
-              return (
+              return (row.original.provision_type === 'mined from BPMN' ?
                 <Button icon="tree" disabled={isOverlay} onClick={()=>handleSelect(row.original)} />
+                : <p>Manual</p>
               );
             },
             width: 50,
-            Header: '',
+            Header: 'Source',
             accessor: '.',
             disableFilters: true,
             disableGroupBy: true,
@@ -169,7 +170,7 @@ const ConstraintsTable = ({
       <FlexBox justifyContent="End">
         <Button 
         design={ButtonDesign.Emphasized}
-        onClick={setConstrainCreateDialogIsOpen}
+        onClick={setConstraintCreateDialogIsOpen}
         icon='add'
         >Create New Best Practice</Button>
       </FlexBox>
