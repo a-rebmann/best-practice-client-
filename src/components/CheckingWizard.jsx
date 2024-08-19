@@ -350,7 +350,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                 }   
               }/>
               </FormItem>
-              <FormItem label="Binary, which have two operands, e.g., 'approve order' and 'create invoice' in Precedence['approve order', 'create invoice']">
+              <FormItem label="Binary Constraints, which have two operands, e.g., 'approve order' and 'create invoice' in Precedence['approve order', 'create invoice']">
               <CheckBox checked={binary} 
               onChange={
                 (event) => {
