@@ -30,6 +30,7 @@ export const nat_lang_templates = {
   "Not Co-Existence": "if {1} occurs, then {2} cannot occur, and vice versa",
 }
 
+
 export const colors = [
   { color: 'green', text: 'event is part of conformant variant' },
   { color: 'yellow', text: 'event is part of non-conformant variant' },
@@ -50,6 +51,13 @@ export const CONSTRAINT_LEVELS = [
   { text: 'Multi-object', value: 'Multi-object' },
   { text: 'Resource', value: 'Resource' },
 ];
+
+export const LEVEL_DESCRIPTIONS = {
+  'Activity': 'Activity-level constraints capture best practices about the behavioral relations that should hold between pairs of activities in a trace',
+  'Multi-object': 'Multi-object constraints capture relations that should hold between pairs of business objects occurring in a process, e.g., that a trace can only contain (activities related to) an invoice if there is also at least one activity related to a delivery',
+  'Object': 'Object-level constraints capture relations regarding the actions, i.e., state changes, that are applied to a business object, e.g., that an order must be checked before it is approved',
+  'Resource': 'Resource-level constraints restrict the execution of activities to specific roles, i.e., who in an organization can perform a given process step',
+};
 
 export const RELEVANCE_LEVELS = [
   { text: '>0.5', value: '0.5' },
@@ -93,8 +101,8 @@ export const addNatLangTemplateFittedConstraint = (constraint) => {
   return {
     ...constraint,
     nat_lang_template: nat_lang_templates[constraint.constraint.constraint_type]
-    .replaceAll("{1}", "''" + constraint.constraint.left_operand + "''")
-    .replaceAll("{2}", "''" + constraint.constraint.right_operand + "''")
+    .replaceAll("{1}", "''" + constraint.left_operand + "''")
+    .replaceAll("{2}", "''" + constraint.right_operand + "''")
     .replaceAll('{n}', constraint.constraint.constraint_str?.split('[')[0]?.slice(-1)),
   }
 }

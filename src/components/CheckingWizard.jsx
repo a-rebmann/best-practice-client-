@@ -20,8 +20,7 @@ import {
   FormItem,
   CheckBox,
 } from '@ui5/webcomponents-react';
-import {objectMap, addNatLangTemplateFittedConstraint, addNatLangTemplateViolation } from '../util';
-import ButtonMenu from './ButtonMenu';
+import {objectMap, addNatLangTemplateFittedConstraint, addNatLangTemplateViolation, LEVEL_DESCRIPTIONS } from '../util';
 import constraintService from '../services/constraints'
 import logService from '../services/logs'
 import SuggestedConstraintsTable from './SuggestedConstraintsTable'
@@ -34,7 +33,7 @@ import "@ui5/webcomponents-icons/dist/opportunity.js"
 import "@ui5/webcomponents-icons/dist/upload.js"
 import "@ui5/webcomponents-icons/dist/product.js"
 import "@ui5/webcomponents-icons/dist/inspect-down.js"
-import { add, set, without } from 'lodash';
+import { without } from 'lodash';
 import violationService from '../services/violations';
 
 const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, setDialogIsOpen, addMessage, config}) => {
@@ -309,16 +308,16 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
           columnsM={2}
           columnsS={2}
           columnsXL={2}
-          labelSpanL={4}
-          labelSpanM={2}
-          labelSpanS={12}
-          labelSpanXL={4}
+          labelSpanL={6}
+          labelSpanM={6}
+          labelSpanS={6}
+          labelSpanXL={6}
           style={{
             alignItems: 'left'
           }}
           titleText="Configuration">
           <FormGroup titleText="Best-Practice Constraint Parameters">
-              <FormItem label="Minimum Relevance Score">
+              <FormItem label="Minimum Relevance Score (determined based on semantic similarity between constraint operands and log components, e.g., event labels)">
 
                 <Input 
                 type="Number"
@@ -331,7 +330,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                 }
                 />
               </FormItem>
-              <FormItem label="Minimum Support">
+              <FormItem label="Minimum Support (number of process models from which a constraint has been mined)">
                   <Input type="Number" 
                   text={min_support} 
                   value={min_support}
@@ -342,7 +341,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                   }
                   />
               </FormItem>
-              <FormItem label="Unary">
+              <FormItem label="Unary Constraints, which have a single operand, e.g., 'create invoice' in Existence[create invoice]">
               <CheckBox checked={unary} 
               onChange={
                 (event) => {
@@ -351,7 +350,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                 }   
               }/>
               </FormItem>
-              <FormItem label="Binary">
+              <FormItem label="Binary, which have two operands, e.g., 'approve order' and 'create invoice' in Precedence['approve order', 'create invoice']">
               <CheckBox checked={binary} 
               onChange={
                 (event) => {
@@ -363,8 +362,9 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
           </FormGroup>
             <FormGroup titleText="Best-Practice Constraint Levels">
                 {config.constraint_levels.map((level) => 
-                    <FormItem key={level} label={level}>
-                    <CheckBox checked={constraint_levels.includes(level)} 
+                <>  
+                    <FormItem key={level} label={LEVEL_DESCRIPTIONS[level]}>
+                    <CheckBox style= {{margin_right: 20}} checked={constraint_levels.includes(level)} 
                     onChange={
                         (event) => {
                             if (event.target.checked) {
@@ -374,9 +374,15 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
                             }
                         }
                     }/>
-                    </FormItem>)
+                    
+                    </FormItem>
+                    
+                    </>
+                  )
                 }
+                
             </FormGroup>
+            
           </Form>
         :null}    
           <br />
