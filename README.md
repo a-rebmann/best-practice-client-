@@ -1,8 +1,8 @@
-# React + Vite
+# Besr-Practice Checker - Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Setup
+Prerequisites: <code>node</code> and <code>npm</code> installed.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Run <code>npm install</code> in the root of the project
+2. Create a .env file with the following variable: <code>VITE_APP_BACKEND_API_URL=http://localhost:8000/api</code> or adjust to your custom back end URL.
+3. Run <code>npm run dev</code>
