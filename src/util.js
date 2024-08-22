@@ -55,8 +55,8 @@ export const CONSTRAINT_LEVELS = [
 export const LEVEL_DESCRIPTIONS = {
   'Activity': 'Activity-level constraints capture best practices about the behavioral relations that should hold between pairs of activities in a trace',
   'Multi-object': 'Multi-object constraints capture relations that should hold between pairs of business objects occurring in a process, e.g., that a trace can only contain (activities related to) an invoice if there is also at least one activity related to a delivery',
-  'Object': 'Object-level constraints capture relations regarding the actions, i.e., state changes, that are applied to a business object, e.g., that an order must be checked before it is approved',
-  'Resource': 'Resource-level constraints restrict the execution of activities to specific roles, i.e., who in an organization can perform a given process step',
+  'Object': 'Object-level constraints capture relations regarding the actions (state changes) that are applied to a business object, e.g., that an order must be checked before it is approved',
+  'Resource': 'Resource-level constraints restrict the execution of activities to specific roles (who can perform a given process step)',
 };
 
 export const RELEVANCE_LEVELS = [
