@@ -317,7 +317,7 @@ const CheckingWizard = ({navigate, setSelectedActivity, setAffectedViolations, s
           }}
           titleText="Configuration">
           <FormGroup titleText="Best-Practice Constraint Parameters">
-              <FormItem label="Minimum Relevance Score (determined based on semantic similarity between constraint operands and log components, e.g., event labels)">
+              <FormItem label="Minimum Relevance Score (semantic similarity between constraint operands and event log counterparts, e.g., event labels)">
 
                 <Input 
                 type="Number"
