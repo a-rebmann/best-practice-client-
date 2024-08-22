@@ -101,9 +101,9 @@ const ConstraintsTable = ({
             headerTooltip: 'Second operand of the constraint',
           },
           {
-            Header: 'Occurs in # models',
+            Header: 'Support',
             accessor: 'support',
-            headerTooltip: 'Occurs in # models',
+            headerTooltip: 'Support',
           },
           {
             Header: 'Explanation',
